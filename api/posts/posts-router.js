@@ -64,19 +64,21 @@ router.get('/:id', (req, res) => {
 //   - return the following JSON: `{ message: "There was an error while saving the post to the database" }`.
 
 router.post('/', (req, res) => {
-
     const { title, contents } = req.body
-    const newPost = POSTS.insert({ title, contents })
-        .then(newPost => {
-            if (!title || !contents) {
-                res.status(400).json({ message: "Please provide title and contents for the post" })
-            } else {
-            res.status(201).json(newPost)
-            }
-        })
-        .catch(err => {
-            res.status(500).json({ message: "There was an error while saving the post to the database" })
-        })
+    if (!title || !contents) {
+        res.status(400).json({ message: "Please provide title and contents for the post" })
+    } else {
+        POSTS.insert(req.body)
+            .then(({id}) => {
+                POSTS.findById(id)
+                    .then(post => {
+                        res.status(201).json(post)
+                    })
+            })
+            .catch(err => {
+                res.status(500).json({ message: "There was an error while saving the post to the database" })
+            })
+    }
 })
 
 // | 4 | PUT | update(id, post) | /:id | Updates the post with the specified id using data from the request body and **returns the modified document**, not the original|
